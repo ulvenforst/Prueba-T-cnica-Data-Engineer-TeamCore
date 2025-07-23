@@ -106,6 +106,13 @@ def main():
             if df is not None:
                 print(f"\n=== Resultados de {query_name} ===")
                 print(df.head(10))
+        
+        # Retornar True si todas las queries se ejecutaron exitosamente
+        successful_queries = sum(1 for df in results.values() if df is not None)
+        total_queries = len(results)
+        return successful_queries == total_queries and total_queries > 0
+    
+    return False
 
 
 if __name__ == "__main__":
