@@ -1,36 +1,33 @@
--- Tarea 3: Detección de anomalías en montos
--- Encuentra transacciones con montos atípicos usando desviación estándar
+-- Tarea 3: Detección de anomalías - incrementos significativos en conteos diarios
 
-WITH transaction_stats AS (
-    SELECT 
-        AVG(amount) as mean_amount,
-        STDEV(amount) as stddev_amount
-    FROM transactions
-    WHERE status = 'completed'
-),
-anomalies AS (
-    SELECT 
-        t.*,
-        ts.mean_amount,
-        ts.stddev_amount,
-        ABS(t.amount - ts.mean_amount) / ts.stddev_amount as z_score
-    FROM transactions t
-    CROSS JOIN transaction_stats ts
-    WHERE t.status = 'completed'
-    AND ABS(t.amount - ts.mean_amount) / ts.stddev_amount > 2.0
-)
 SELECT 
-    order_id,
-    user_id,
-    amount,
-    timestamp,
-    status,
-    ROUND(z_score, 2) as z_score,
+    fecha_actual,
+    conteo_actual,
+    conteo_anterior,
+    incremento_absoluto,
+    ROUND(incremento_porcentual, 2) as incremento_porcentual,
     CASE 
-        WHEN z_score > 3.0 THEN 'Extrema'
-        WHEN z_score > 2.5 THEN 'Alta'
-        ELSE 'Moderada'
-    END as anomaly_level
-FROM anomalies
-ORDER BY z_score DESC
-LIMIT 100;
+        WHEN incremento_porcentual > 50 THEN 'ALERTA_CRITICA'
+        WHEN incremento_porcentual > 25 THEN 'ALERTA_ALTA'
+        WHEN incremento_porcentual > 10 THEN 'ALERTA_MEDIA'
+        ELSE 'NORMAL'
+    END as nivel_alerta
+FROM (
+    SELECT 
+        DATE(timestamp) as fecha_actual,
+        COUNT(*) as conteo_actual,
+        LAG(COUNT(*)) OVER (ORDER BY DATE(timestamp)) as conteo_anterior,
+        COUNT(*) - LAG(COUNT(*)) OVER (ORDER BY DATE(timestamp)) as incremento_absoluto,
+        CASE 
+            WHEN LAG(COUNT(*)) OVER (ORDER BY DATE(timestamp)) > 0 
+            THEN (COUNT(*) - LAG(COUNT(*)) OVER (ORDER BY DATE(timestamp))) * 100.0 / LAG(COUNT(*)) OVER (ORDER BY DATE(timestamp))
+            ELSE 0 
+        END as incremento_porcentual
+    FROM transactions
+    WHERE timestamp >= datetime('now', '-30 days')  -- Solo últimos 30 días
+    GROUP BY DATE(timestamp)
+) 
+WHERE conteo_anterior IS NOT NULL 
+    AND incremento_porcentual > 10
+ORDER BY fecha_actual DESC
+LIMIT 50;

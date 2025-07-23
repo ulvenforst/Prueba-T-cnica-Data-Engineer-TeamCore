@@ -1,16 +1,14 @@
--- Tarea 2: Usuarios con múltiples transacciones fallidas
--- Identifica usuarios con patrones de fallas
+-- Tarea 2: Usuarios con >3 transacciones fallidas en últimos 7 días
 
 SELECT 
     user_id,
-    COUNT(*) as failed_transactions,
-    COUNT(DISTINCT DATE(timestamp)) as days_with_failures,
-    AVG(amount) as avg_failed_amount,
-    MIN(timestamp) as first_failure,
-    MAX(timestamp) as last_failure
+    COUNT(*) as total_fallas,
+    MIN(timestamp) as primera_falla,
+    MAX(timestamp) as ultima_falla,
+    ROUND(SUM(amount), 2) as monto_total_fallido
 FROM transactions
-WHERE status = 'failed'
+WHERE status = 'failed' 
+    AND timestamp >= datetime('now', '-7 days')
 GROUP BY user_id
-HAVING COUNT(*) >= 2
-ORDER BY failed_transactions DESC, user_id
-LIMIT 50;
+HAVING COUNT(*) > 3
+ORDER BY total_fallas DESC;
