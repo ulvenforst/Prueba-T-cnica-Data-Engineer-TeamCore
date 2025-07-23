@@ -1,0 +1,47 @@
+# .dockerignore - archivos a excluir de la imagen Docker
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Entornos virtuales
+venv/
+env/
+.env
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentación
+README*.md
+docs/
+
+# Logs y archivos temporales
+*.log
+*.tmp
+.coverage
+htmlcov/
+
+# Archivos de datos grandes (se regeneran)
+data/raw/*.csv
+data/raw/*.gz
+data/processed/*.db
+data/warehouse/*.db
+
+# Archivos de respaldo
+*_old.*
+*_backup.*

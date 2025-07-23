@@ -173,6 +173,52 @@ python -m pytest tests/ --cov=. --cov-report=html
 python validate_exercises.py
 ```
 
+## CI/CD Pipeline (Ejercicio 5)
+
+### GitHub Actions Workflow
+
+El proyecto incluye un pipeline completo de CI/CD que se ejecuta automáticamente:
+
+**Triggers:**
+- Push a ramas: `main`, `dev`, `feature/*`
+- Pull requests hacia `main`
+
+**Etapas del Pipeline:**
+
+1. **Code Quality & Tests**
+   - Formateo con Black
+   - Linting con Flake8
+   - Type checking con MyPy
+   - Generación de datos de prueba
+   - Ejecución de tests unitarios
+   - Validación de consultas SQL
+   - Test de procesamiento ETL
+
+2. **Docker Build** (solo en `main`)
+   - Construcción de imagen Docker
+   - Test de la imagen generada
+
+### Estructura de Branching
+
+```
+main/           # Producción - releases estables
+├── dev/        # Desarrollo - integración continua
+└── feature/*   # Features - desarrollo de funcionalidades
+```
+
+### Docker Support
+
+```bash
+# Construir imagen
+docker build -t data-engineering-pipeline .
+
+# Ejecutar contenedor
+docker run -it data-engineering-pipeline python main.py --sql
+
+# Con Docker Compose (incluye Airflow)
+docker-compose up -d
+```
+
 ## Características Técnicas
 
 ### Gestión de Datos
@@ -268,11 +314,3 @@ git commit -m "[ETL] Optimizar procesamiento por chunks"
 git commit -m "[SQL] Agregar índice para consulta de anomalías"
 git commit -m "[TEST] Mejorar cobertura de validaciones"
 ```
-
-## Licencia
-
-Este proyecto es parte de una prueba técnica para TeamCore.
-
----
-
-**Nota**: Este pipeline procesa datos sintéticos generados para fines de evaluación. Los algoritmos y optimizaciones son aplicables a datos reales de producción.
