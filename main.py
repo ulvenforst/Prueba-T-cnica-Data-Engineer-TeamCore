@@ -68,6 +68,64 @@ def run_warehouse():
         logger.error(f"Error en proceso de warehouse: {e}")
         return False
 
+def run_sql_analysis():
+    """Ejecutar análisis SQL - Ejercicio 2"""
+    logger.info("Iniciando análisis SQL - Ejercicio 2")
+    try:
+        from sql.analysis_runner import main as run_analysis
+        result = run_analysis()
+        logger.info("Análisis SQL completado exitosamente")
+        return result
+    except Exception as e:
+        logger.error(f"Error en análisis SQL: {e}")
+        return False
+
+def run_streaming_benchmark():
+    """Ejecutar benchmark de streaming - Ejercicio 3"""
+    logger.info("Iniciando benchmark de streaming - Ejercicio 3")
+    try:
+        from etl.streaming_processor import main as run_streaming
+        result = run_streaming()
+        logger.info("Benchmark de streaming completado exitosamente")
+        return result
+    except Exception as e:
+        logger.error(f"Error en benchmark de streaming: {e}")
+        return False
+
+def run_all_exercises():
+    """Ejecutar todos los ejercicios en secuencia"""
+    logger.info("=== EJECUTANDO TODOS LOS EJERCICIOS ===")
+    
+    results = {}
+    
+    # Ejercicio 1: Orquestación (ETL)
+    logger.info("--- Ejercicio 1: Orquestación ---")
+    results['ejercicio_1'] = run_etl()
+    
+    # Ejercicio 2: SQL y análisis
+    logger.info("--- Ejercicio 2: SQL y análisis ---")
+    results['ejercicio_2'] = run_sql_analysis()
+    
+    # Ejercicio 3: ETL streaming
+    logger.info("--- Ejercicio 3: ETL streaming ---")
+    results['ejercicio_3'] = run_streaming_benchmark()
+    
+    # Ejercicio 4: Modelado de datos
+    logger.info("--- Ejercicio 4: Modelado de datos ---")
+    results['ejercicio_4'] = run_warehouse()
+    
+    # Resumen
+    successful = sum(1 for result in results.values() if result)
+    total = len(results)
+    
+    logger.info(f"=== RESUMEN: {successful}/{total} ejercicios completados ===")
+    
+    for ejercicio, resultado in results.items():
+        status = "EXITOSO" if resultado else "FALLIDO"
+        logger.info(f"{ejercicio}: {status}")
+    
+    return successful == total
+
 def run_full_pipeline():
     """Ejecutar pipeline completo"""
     logger.info("Iniciando pipeline completo")
@@ -95,16 +153,19 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Ejemplos:
-  %(prog)s etl                 # Ejecutar solo ETL
-  %(prog)s warehouse           # Ejecutar solo data warehouse
-  %(prog)s pipeline            # Ejecutar pipeline completo
+  %(prog)s etl                 # Ejecutar solo ETL (Ejercicio 1)
+  %(prog)s warehouse           # Ejecutar solo data warehouse (Ejercicio 4)
+  %(prog)s sql                 # Ejecutar análisis SQL (Ejercicio 2)
+  %(prog)s streaming           # Ejecutar benchmark streaming (Ejercicio 3)
+  %(prog)s pipeline            # Ejecutar pipeline básico (ETL + Warehouse)
+  %(prog)s all                 # Ejecutar TODOS los ejercicios
   %(prog)s --help              # Mostrar esta ayuda
         """
     )
     
     parser.add_argument(
         'command',
-        choices=['etl', 'warehouse', 'pipeline'],
+        choices=['etl', 'warehouse', 'pipeline', 'sql', 'streaming', 'all'],
         help='Comando a ejecutar'
     )
     
@@ -128,6 +189,12 @@ Ejemplos:
         success = run_warehouse()
     elif args.command == 'pipeline':
         success = run_full_pipeline()
+    elif args.command == 'sql':
+        success = run_sql_analysis()
+    elif args.command == 'streaming':
+        success = run_streaming_benchmark()
+    elif args.command == 'all':
+        success = run_all_exercises()
     
     # Salir con código apropiado
     sys.exit(0 if success else 1)
