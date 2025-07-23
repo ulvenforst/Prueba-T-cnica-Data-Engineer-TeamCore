@@ -1,7 +1,7 @@
 # Dependencias básicas
 pandas>=2.0.0
 numpy>=1.24.0
-sqlite3
+# sqlite3 viene incluido en Python
 pytest>=7.0.0
 pytest-cov>=4.0.0
 pytest-xdist>=3.0.0
