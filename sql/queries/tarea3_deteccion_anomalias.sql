@@ -1,39 +1,36 @@
--- TAREA 3: Detección de anomalías en conteos diarios
--- Compara conteos diarios y alerta sobre incrementos significativos
+-- Tarea 3: Detección de anomalías en montos
+-- Encuentra transacciones con montos atípicos usando desviación estándar
 
-WITH daily_counts AS (
+WITH transaction_stats AS (
     SELECT 
-        date,
-        COUNT(*) as daily_transaction_count
+        AVG(amount) as mean_amount,
+        STDEV(amount) as stddev_amount
     FROM transactions
-    GROUP BY date
+    WHERE status = 'completed'
 ),
-daily_stats AS (
+anomalies AS (
     SELECT 
-        date,
-        daily_transaction_count,
-        LAG(daily_transaction_count) OVER (ORDER BY date) as previous_day_count,
-        AVG(daily_transaction_count) OVER (
-            ORDER BY date 
-            ROWS BETWEEN 6 PRECEDING AND 1 PRECEDING
-        ) as avg_last_7_days
-    FROM daily_counts
+        t.*,
+        ts.mean_amount,
+        ts.stddev_amount,
+        ABS(t.amount - ts.mean_amount) / ts.stddev_amount as z_score
+    FROM transactions t
+    CROSS JOIN transaction_stats ts
+    WHERE t.status = 'completed'
+    AND ABS(t.amount - ts.mean_amount) / ts.stddev_amount > 2.0
 )
 SELECT 
-    date,
-    daily_transaction_count,
-    previous_day_count,
-    ROUND(avg_last_7_days, 2) as avg_last_7_days,
-    ROUND(
-        (daily_transaction_count - avg_last_7_days) * 100.0 / avg_last_7_days, 
-        2
-    ) as percent_increase_vs_avg,
+    order_id,
+    user_id,
+    amount,
+    timestamp,
+    status,
+    ROUND(z_score, 2) as z_score,
     CASE 
-        WHEN daily_transaction_count > avg_last_7_days * 1.5 THEN 'ALERT: +50% increase'
-        WHEN daily_transaction_count > avg_last_7_days * 1.3 THEN 'WARNING: +30% increase'
-        WHEN daily_transaction_count < avg_last_7_days * 0.7 THEN 'WARNING: -30% decrease'
-        ELSE 'NORMAL'
-    END as anomaly_status
-FROM daily_stats
-WHERE avg_last_7_days IS NOT NULL
-ORDER BY date;
+        WHEN z_score > 3.0 THEN 'Extrema'
+        WHEN z_score > 2.5 THEN 'Alta'
+        ELSE 'Moderada'
+    END as anomaly_level
+FROM anomalies
+ORDER BY z_score DESC
+LIMIT 100;

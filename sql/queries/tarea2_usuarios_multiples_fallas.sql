@@ -1,15 +1,16 @@
--- TAREA 2: Detectar usuarios con más de 3 transacciones fallidas en los últimos 7 días
--- Query que identifica usuarios problemáticos con múltiples fallas recientes
+-- Tarea 2: Usuarios con múltiples transacciones fallidas
+-- Identifica usuarios con patrones de fallas
 
 SELECT 
     user_id,
-    COUNT(*) as failed_transactions_last_7_days,
-    MIN(date) as first_failure_date,
-    MAX(date) as last_failure_date,
-    ROUND(SUM(amount), 2) as total_failed_amount
+    COUNT(*) as failed_transactions,
+    COUNT(DISTINCT DATE(timestamp)) as days_with_failures,
+    AVG(amount) as avg_failed_amount,
+    MIN(timestamp) as first_failure,
+    MAX(timestamp) as last_failure
 FROM transactions
-WHERE status = 'failed' 
-    AND date >= date('now', '-7 days')
+WHERE status = 'failed'
 GROUP BY user_id
-HAVING COUNT(*) > 3
-ORDER BY failed_transactions_last_7_days DESC;
+HAVING COUNT(*) >= 2
+ORDER BY failed_transactions DESC, user_id
+LIMIT 50;

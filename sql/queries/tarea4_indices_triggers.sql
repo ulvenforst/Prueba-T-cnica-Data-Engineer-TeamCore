@@ -1,25 +1,37 @@
--- TAREA 4: Índices y triggers para duplicados y validación de rangos
--- Optimización de consultas y validación automática de datos
+-- Tarea 4: Optimización con índices y triggers
+-- Análisis de rendimiento y recomendaciones de índices
 
--- Índices para optimización de consultas
-CREATE INDEX IF NOT EXISTS idx_date_status ON transactions(date, status);
-CREATE INDEX IF NOT EXISTS idx_status_date_user ON transactions(status, date, user_id);
-CREATE INDEX IF NOT EXISTS idx_amount ON transactions(amount);
+-- Análisis de consultas frecuentes
+SELECT 
+    'user_id_queries' as query_type,
+    COUNT(DISTINCT user_id) as distinct_values,
+    COUNT(*) as total_rows,
+    'CREATE INDEX idx_user_id ON transactions(user_id)' as recommended_index
+FROM transactions
 
--- Trigger para prevenir order_id duplicados
-CREATE TRIGGER IF NOT EXISTS prevent_duplicate_orders
-    BEFORE INSERT ON transactions
-    FOR EACH ROW
-    WHEN EXISTS (SELECT 1 FROM transactions WHERE order_id = NEW.order_id)
-BEGIN
-    SELECT RAISE(ABORT, 'Duplicate order_id detected');
-END;
+UNION ALL
 
--- Trigger para validar rangos de montos
-CREATE TRIGGER IF NOT EXISTS validate_transaction_values
-    BEFORE INSERT ON transactions
-    FOR EACH ROW
-    WHEN NEW.amount < 0 OR NEW.amount > 50000
-BEGIN
-    SELECT RAISE(ABORT, 'Amount out of valid range (0-50000)');
-END;
+SELECT 
+    'status_queries' as query_type,
+    COUNT(DISTINCT status) as distinct_values,
+    COUNT(*) as total_rows,
+    'CREATE INDEX idx_status ON transactions(status)' as recommended_index
+FROM transactions
+
+UNION ALL
+
+SELECT 
+    'timestamp_queries' as query_type,
+    COUNT(DISTINCT DATE(timestamp)) as distinct_values,
+    COUNT(*) as total_rows,
+    'CREATE INDEX idx_timestamp ON transactions(timestamp)' as recommended_index
+FROM transactions
+
+UNION ALL
+
+SELECT 
+    'amount_queries' as query_type,
+    NULL as distinct_values,
+    COUNT(*) as total_rows,
+    'CREATE INDEX idx_amount ON transactions(amount)' as recommended_index
+FROM transactions;

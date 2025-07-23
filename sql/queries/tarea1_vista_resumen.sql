@@ -1,28 +1,16 @@
--- TAREA 1: Vista con resumen por día y estado
--- Crea una vista que muestra estadísticas diarias agrupadas por estado
+-- Tarea 1: Vista resumen de transacciones
+-- Agrupa transacciones por usuario y status, calculando totales
 
-DROP VIEW IF EXISTS daily_status_summary;
-
-CREATE VIEW daily_status_summary AS
 SELECT 
-    date,
+    user_id,
     status,
-    COUNT(*) as transaction_count,
-    ROUND(SUM(amount), 2) as total_amount,
-    ROUND(AVG(amount), 2) as avg_amount,
-    COUNT(DISTINCT user_id) as unique_users
+    COUNT(*) as total_transactions,
+    SUM(amount) as total_amount,
+    AVG(amount) as avg_amount,
+    MIN(amount) as min_amount,
+    MAX(amount) as max_amount,
+    DATE(timestamp) as transaction_date
 FROM transactions
-GROUP BY date, status
-ORDER BY date DESC, status;
-
-CREATE VIEW daily_status_summary AS
-SELECT 
-    date,
-    status,
-    COUNT(*) as transaction_count,
-    ROUND(SUM(amount), 2) as total_amount,
-    ROUND(AVG(amount), 2) as avg_amount,
-    COUNT(DISTINCT user_id) as unique_users
-FROM transactions
-GROUP BY date, status
-ORDER BY date DESC, status;
+GROUP BY user_id, status, DATE(timestamp)
+ORDER BY user_id, status, transaction_date
+LIMIT 100;
