@@ -1,7 +1,9 @@
 import gzip
 import json
+from pathlib import Path
 
-file_path = r"C:\Users\ulven\Programming\Work\TeamCore\PruebaTécnica\shared\data\sample.log.gz"
+# Usar ruta relativa al proyecto
+file_path = Path("data/raw/sample.log.gz")
 
 # Contar registros y verificar estructura
 count = 0
